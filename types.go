@@ -1,6 +1,11 @@
 package meilisearch
 
-import "time"
+import (
+	"bytes"
+	"encoding/json"
+	"github.com/valyala/fastjson"
+	"time"
+)
 
 // Unknown is unknown json type
 type Unknown map[string]interface{}
@@ -8,6 +13,11 @@ type Unknown map[string]interface{}
 //
 // Internal types to Meilisearch
 //
+
+type Response interface {
+	UnmarshalJSON(data []byte) error
+	MarshalJSON() ([]byte, error)
+}
 
 // Index is the type that represent an index in MeiliSearch
 type Index struct {
@@ -146,4 +156,179 @@ type ListDocumentsRequest struct {
 	Offset               int64    `json:"offset,omitempty"`
 	Limit                int64    `json:"limit,omitempty"`
 	AttributesToRetrieve []string `json:"attributesToRetrieve,omitempty"`
+}
+
+type RawType []byte
+
+type Str string
+
+type Indexes []Index
+
+type Updates []Update
+
+type Health struct {
+	Health bool
+}
+
+type Name struct {
+	Name string
+}
+
+type PrimaryKey struct {
+	PrimaryKey string
+}
+
+type StrsArr []string
+
+type Synonyms map[string][]string
+
+type Query struct {
+	Query                 string `json:"q"`
+	Offset                int64
+	Limit                 int64
+	AttributesToRetrieve  []string
+	AttributesToCrop      []string
+	CropLength            int64
+	AttributesToHighlight []string
+	Filters               string
+	Matches               bool
+	FacetsDistribution    []string
+	FacetFilters          interface{}
+	PlaceholderSearch     bool
+}
+
+func (b *RawType) UnmarshalJSON(data []byte) error {
+	*b = data
+	return nil
+}
+
+func (b RawType) MarshalJSON() ([]byte, error) {
+	return b, nil
+}
+
+func (i *StrsArr) UnmarshalJSON(data []byte) error {
+	bf := bytes.Buffer{}
+	pr := fastjson.Parser{}
+
+	val, err := pr.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+	valArray, err := val.Array()
+	if err != nil {
+		return err
+	}
+	for _, val := range valArray {
+		val.MarshalTo(bf.Bytes())
+		*i = append(*i, val.String())
+		bf.Reset()
+	}
+
+	return nil
+}
+
+func (i StrsArr) MarshalJSON() ([]byte, error) {
+	ar := fastjson.Arena{}
+	indArr := ar.NewArray()
+	for j, ind := range i {
+		indArr.SetArrayItem(j, ar.NewString(ind))
+	}
+	return indArr.MarshalTo(nil), nil
+}
+
+func (i *Indexes) UnmarshalJSON(data []byte) error {
+	pr := fastjson.Parser{}
+
+	vals, err := pr.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+	valArray, err := vals.Array()
+	if err != nil {
+		return err
+	}
+
+	for _, val := range valArray {
+		ind := &Index{}
+		data = val.MarshalTo(data[:0])
+		err = ind.UnmarshalJSON(data)
+		if err != nil {
+			return err
+		}
+		*i = append(*i, *ind)
+	}
+
+	return nil
+}
+
+func (i Indexes) MarshalJSON() ([]byte, error) {
+	ar := fastjson.Arena{}
+	indArr := ar.NewArray()
+	for j, ind := range i {
+		data, err := ind.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		indArr.SetArrayItem(j, ar.NewStringBytes(data))
+	}
+	return indArr.MarshalTo(nil), nil
+}
+
+func (u *Updates) UnmarshalJSON(data []byte) error {
+	bf := bytes.Buffer{}
+	pr := fastjson.Parser{}
+
+	val, err := pr.ParseBytes(data)
+	if err != nil {
+		return err
+	}
+	valArray, err := val.Array()
+	if err != nil {
+		return err
+	}
+	upd := &Update{}
+	for _, val := range valArray {
+		val.MarshalTo(bf.Bytes())
+
+		err = upd.UnmarshalJSON(bf.Bytes())
+		if err != nil {
+			return err
+		}
+		*u = append(*u, *upd)
+		bf.Reset()
+	}
+
+	return nil
+}
+
+func (u Updates) MarshalJSON() ([]byte, error) {
+	ar := fastjson.Arena{}
+	indArr := ar.NewArray()
+	for j, ind := range u {
+		data, err := ind.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+		indArr.SetArrayItem(j, ar.NewStringBytes(data))
+	}
+	return indArr.MarshalTo(nil), nil
+}
+
+func (s *Str) UnmarshalJSON(data []byte) error {
+	str := Str(data[:])
+	*s = str
+	return nil
+}
+
+func (s Str) MarshalJSON() ([]byte, error) {
+	return []byte(s), nil
+}
+
+func (s *Synonyms) UnmarshalJSON(data []byte) error {
+	err := json.Unmarshal(data, s)
+	return err
+}
+
+func (s Synonyms) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s)
 }

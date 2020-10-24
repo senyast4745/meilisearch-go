@@ -1,10 +1,12 @@
 package meilisearch
 
+import "encoding/json"
+
 // APIWithIndexID is used to await an async update id response.
 // Each apis that use an index internally implement this interface except APIUpdates.
 type APIWithIndexID interface {
 	IndexID() string
-	Client() *Client
+	Client() ClientInterface
 }
 
 // APIIndexes index is an entity, like a table in SQL, with a specific schema definition. It gathers a collection of
@@ -19,7 +21,7 @@ type APIIndexes interface {
 	Get(uid string) (*Index, error)
 
 	// List all indexes.
-	List() ([]Index, error)
+	List() (Indexes, error)
 
 	// Create an index.
 	// If no UID is specified in the request a randomly generated UID will be returned.
@@ -44,28 +46,28 @@ type APIDocuments interface {
 
 	// Get one document using its unique identifier.
 	// documentPtr should be a pointer.
-	Get(identifier string, documentPtr interface{}) error
+	Get(identifier string, documentPtr json.Unmarshaler) error
 
 	// Delete one document based on its unique identifier.
 	Delete(identifier string) (*AsyncUpdateID, error)
 
 	// Delete a selection of documents based on array of identifiers.
-	Deletes(identifier []string) (*AsyncUpdateID, error)
+	Deletes(identifier StrsArr) (*AsyncUpdateID, error)
 
 	// List the documents in an unordered way.
-	List(request ListDocumentsRequest, documentsPtr interface{}) error
+	List(request ListDocumentsRequest, documentsPtr json.Unmarshaler) error
 
 	// AddOrReplace a list of documents, replace them if they already exist based on their unique identifiers.
-	AddOrReplace(documentsPtr interface{}) (*AsyncUpdateID, error)
+	AddOrReplace(documentsPtr json.Marshaler) (*AsyncUpdateID, error)
 
 	// AddOrReplaceWithPrimaryKey do the same as AddOrReplace but will specify during the update to primaryKey to use for indexing
-	AddOrReplaceWithPrimaryKey(documentsPtr interface{}, primaryKey string) (resp *AsyncUpdateID, err error)
+	AddOrReplaceWithPrimaryKey(documentsPtr json.Marshaler, primaryKey string) (resp *AsyncUpdateID, err error)
 
 	// AddOrUpdate a list of documents, update them if they already exist based on their unique identifiers.
-	AddOrUpdate(documentsPtr interface{}) (*AsyncUpdateID, error)
+	AddOrUpdate(documentsPtr json.Marshaler) (*AsyncUpdateID, error)
 
 	// AddOrUpdateWithPrimaryKey do the same as AddOrUpdate but will specify during the update to primaryKey to use for indexing
-	AddOrUpdateWithPrimaryKey(documentsPtr interface{}, primaryKey string) (resp *AsyncUpdateID, err error)
+	AddOrUpdateWithPrimaryKey(documentsPtr json.Marshaler, primaryKey string) (resp *AsyncUpdateID, err error)
 
 	// DeleteAllDocuments in the specified index.
 	DeleteAllDocuments() (*AsyncUpdateID, error)
@@ -99,7 +101,7 @@ type APIUpdates interface {
 	Get(id int64) (*Update, error)
 
 	// Get the status of all updates in a given index.
-	List() ([]Update, error)
+	List() (Updates, error)
 
 	APIWithIndexID
 }
@@ -123,45 +125,45 @@ type APISettings interface {
 
 	ResetAll() (*AsyncUpdateID, error)
 
-	GetRankingRules() (*[]string, error)
+	GetRankingRules() (*StrsArr, error)
 
-	UpdateRankingRules([]string) (*AsyncUpdateID, error)
+	UpdateRankingRules(arr StrsArr) (*AsyncUpdateID, error)
 
 	ResetRankingRules() (*AsyncUpdateID, error)
 
-	GetDistinctAttribute() (*string, error)
+	GetDistinctAttribute() (*Str, error)
 
-	UpdateDistinctAttribute(string) (*AsyncUpdateID, error)
+	UpdateDistinctAttribute(Str) (*AsyncUpdateID, error)
 
 	ResetDistinctAttribute() (*AsyncUpdateID, error)
 
-	GetSearchableAttributes() (*[]string, error)
+	GetSearchableAttributes() (*StrsArr, error)
 
-	UpdateSearchableAttributes([]string) (*AsyncUpdateID, error)
+	UpdateSearchableAttributes(StrsArr) (*AsyncUpdateID, error)
 
 	ResetSearchableAttributes() (*AsyncUpdateID, error)
 
-	GetDisplayedAttributes() (*[]string, error)
+	GetDisplayedAttributes() (*StrsArr, error)
 
-	UpdateDisplayedAttributes([]string) (*AsyncUpdateID, error)
+	UpdateDisplayedAttributes(StrsArr) (*AsyncUpdateID, error)
 
 	ResetDisplayedAttributes() (*AsyncUpdateID, error)
 
-	GetStopWords() (*[]string, error)
+	GetStopWords() (*StrsArr, error)
 
-	UpdateStopWords([]string) (*AsyncUpdateID, error)
+	UpdateStopWords(StrsArr) (*AsyncUpdateID, error)
 
 	ResetStopWords() (*AsyncUpdateID, error)
 
-	GetSynonyms() (*map[string][]string, error)
+	GetSynonyms() (*Synonyms, error)
 
-	UpdateSynonyms(map[string][]string) (*AsyncUpdateID, error)
+	UpdateSynonyms(synonyms Synonyms) (*AsyncUpdateID, error)
 
 	ResetSynonyms() (*AsyncUpdateID, error)
 
-	GetAttributesForFaceting() (*[]string, error)
+	GetAttributesForFaceting() (*StrsArr, error)
 
-	UpdateAttributesForFaceting([]string) (*AsyncUpdateID, error)
+	UpdateAttributesForFaceting(StrsArr) (*AsyncUpdateID, error)
 
 	ResetAttributesForFaceting() (*AsyncUpdateID, error)
 }
