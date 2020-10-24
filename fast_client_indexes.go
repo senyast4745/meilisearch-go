@@ -1,18 +1,23 @@
 package meilisearch
 
-import "net/http"
+import (
+	"github.com/valyala/fastjson"
+	"net/http"
+)
 
-type clientIndexes struct {
-	client *Client
+var prp fastjson.ParserPool
+
+type fastClientIndexes struct {
+	client *FastHttpClient
 }
 
-func newClientIndexes(client *Client) clientIndexes {
-	return clientIndexes{client: client}
+func newFastClientIndexes(client *FastHttpClient) fastClientIndexes {
+	return fastClientIndexes{client: client}
 }
 
-func (c clientIndexes) Get(uid string) (resp *Index, err error) {
+func (c fastClientIndexes) Get(uid string) (resp *Index, err error) {
 	resp = &Index{}
-	req := internalRequest{
+	req := internalRawRequest{
 		endpoint:            "/indexes/" + uid,
 		method:              http.MethodGet,
 		withRequest:         nil,
@@ -29,13 +34,16 @@ func (c clientIndexes) Get(uid string) (resp *Index, err error) {
 	return resp, nil
 }
 
-func (c clientIndexes) List() (resp []Index, err error) {
+func (c fastClientIndexes) List() (resp Indexes, err error) {
 	resp = []Index{}
-	req := internalRequest{
+	p := prp.Get()
+	defer prp.Put(p)
+
+	req := internalRawRequest{
 		endpoint:            "/indexes",
 		method:              http.MethodGet,
-		withRequest:         nil,
-		withResponse:        &resp,
+		withRequest:         resp,
+		withResponse:        &RawType{},
 		acceptedStatusCodes: []int{http.StatusOK},
 		functionName:        "List",
 		apiName:             "Indexes",
@@ -44,16 +52,14 @@ func (c clientIndexes) List() (resp []Index, err error) {
 	if err := c.client.executeRequest(req); err != nil {
 		return nil, err
 	}
-
 	return resp, nil
 }
 
-func (c clientIndexes) Create(request CreateIndexRequest) (resp *CreateIndexResponse, err error) {
-	resp = &CreateIndexResponse{}
-	req := internalRequest{
+func (c fastClientIndexes) Create(request CreateIndexRequest) (resp *CreateIndexResponse, err error) {
+	req := internalRawRequest{
 		endpoint:            "/indexes",
 		method:              http.MethodPost,
-		withRequest:         &request,
+		withRequest:         request,
 		withResponse:        resp,
 		acceptedStatusCodes: []int{http.StatusCreated},
 		functionName:        "Create",
@@ -67,14 +73,12 @@ func (c clientIndexes) Create(request CreateIndexRequest) (resp *CreateIndexResp
 	return resp, nil
 }
 
-func (c clientIndexes) UpdateName(uid string, name string) (resp *Index, err error) {
+func (c fastClientIndexes) UpdateName(uid string, name string) (resp *Index, err error) {
 	resp = &Index{}
-	req := internalRequest{
-		endpoint: "/indexes/" + uid,
-		method:   http.MethodPut,
-		withRequest: &map[string]string{
-			"name": name,
-		},
+	req := internalRawRequest{
+		endpoint:            "/indexes/" + uid,
+		method:              http.MethodPut,
+		withRequest:         &Name{Name: name},
 		withResponse:        resp,
 		acceptedStatusCodes: []int{http.StatusOK},
 		functionName:        "UpdateName",
@@ -88,14 +92,12 @@ func (c clientIndexes) UpdateName(uid string, name string) (resp *Index, err err
 	return resp, nil
 }
 
-func (c clientIndexes) UpdatePrimaryKey(uid string, primaryKey string) (resp *Index, err error) {
+func (c fastClientIndexes) UpdatePrimaryKey(uid string, primaryKey string) (resp *Index, err error) {
 	resp = &Index{}
-	req := internalRequest{
-		endpoint: "/indexes/" + uid,
-		method:   http.MethodPut,
-		withRequest: &map[string]string{
-			"primaryKey": primaryKey,
-		},
+	req := internalRawRequest{
+		endpoint:            "/indexes/" + uid,
+		method:              http.MethodPut,
+		withRequest:         &PrimaryKey{PrimaryKey: primaryKey},
 		withResponse:        resp,
 		acceptedStatusCodes: []int{http.StatusOK},
 		functionName:        "UpdatePrimaryKey",
@@ -109,8 +111,8 @@ func (c clientIndexes) UpdatePrimaryKey(uid string, primaryKey string) (resp *In
 	return resp, nil
 }
 
-func (c clientIndexes) Delete(uid string) (ok bool, err error) {
-	req := internalRequest{
+func (c fastClientIndexes) Delete(uid string) (ok bool, err error) {
+	req := internalRawRequest{
 		endpoint:            "/indexes/" + uid,
 		method:              http.MethodDelete,
 		withRequest:         nil,

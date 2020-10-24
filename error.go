@@ -3,9 +3,8 @@ package meilisearch
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
-
 	"github.com/pkg/errors"
+	"strings"
 )
 
 // ErrCode are all possible errors found during requests
@@ -121,7 +120,7 @@ func (e Error) Error() string {
 		return errors.Wrap(e.OriginError, message).Error()
 	}
 
-	return message
+	return e.APIName
 }
 
 // WithMessage add a message to an error
