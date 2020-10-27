@@ -36,15 +36,15 @@ func (c fastClientIndexes) Get(uid string) (resp *Index, err error) {
 }
 
 func (c fastClientIndexes) List() (resp Indexes, err error) {
-	resp = []Index{}
+	resp = Indexes{}
 	p := prp.Get()
 	defer prp.Put(p)
 
 	req := internalRawRequest{
 		endpoint:            "/indexes",
 		method:              http.MethodGet,
-		withRequest:         resp,
-		withResponse:        &RawType{},
+		withRequest:         nil,
+		withResponse:        &resp,
 		acceptedStatusCodes: []int{http.StatusOK},
 		functionName:        "List",
 		apiName:             "Indexes",
