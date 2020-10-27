@@ -53,6 +53,7 @@ func (c fastClientIndexes) List() (resp Indexes, err error) {
 	if err := c.client.executeRequest(req); err != nil {
 		return nil, err
 	}
+	log.Printf("%v", resp)
 	return resp, nil
 }
 
