@@ -255,7 +255,7 @@ func (i *Indexes) UnmarshalJSON(data []byte) error {
 	for _, val := range valArray {
 		ind := &Index{}
 		val.MarshalTo(bf.Bytes())
-		log.Printf("indexes data raw bytes %v", string(bf.Bytes()))
+		log.Printf("indexes data raw bytes %v", val.String())
 		err = ind.UnmarshalJSON(bf.Bytes())
 		log.Printf("indexes data raw ind %v", ind)
 		if err != nil {
