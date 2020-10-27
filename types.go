@@ -257,10 +257,11 @@ func (i *Indexes) UnmarshalJSON(data []byte) error {
 		val.MarshalTo(bf.Bytes())
 		log.Printf("indexes data raw bytes %v", val.String())
 		err = ind.UnmarshalJSON(bf.Bytes())
-		log.Printf("indexes data raw ind %v", ind)
 		if err != nil {
+			log.Printf("parse errorororor !! %v", err)
 			return err
 		}
+		log.Printf("indexes data raw ind %v", ind)
 		*i = append(*i, *ind)
 		bf.Reset()
 	}
