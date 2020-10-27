@@ -91,12 +91,12 @@ func (c *FastHttpClient) executeRequest(req internalRawRequest) error {
 		MeilisearchMessage: "empty meilisearch message",
 		StatusCodeExpected: req.acceptedStatusCodes,
 	}
-	log.Printf("%v", req)
+	log.Printf("request %v", req)
 	response, err := c.sendRequest(&req, internalError)
 	if err != nil {
 		return err
 	}
-	log.Printf("%v", response)
+	log.Printf("responce %v", response)
 	internalError.StatusCode = response.StatusCode()
 
 	err = c.handleStatusCode(&req, response, internalError)
