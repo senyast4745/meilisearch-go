@@ -2,7 +2,6 @@ package meilisearch
 
 import (
 	"github.com/valyala/fastjson"
-	"log"
 	"net/http"
 )
 
@@ -31,7 +30,6 @@ func (c fastClientIndexes) Get(uid string) (resp *Index, err error) {
 	if err := c.client.executeRequest(req); err != nil {
 		return nil, err
 	}
-	log.Printf("%v", resp)
 	return resp, nil
 }
 
@@ -53,7 +51,6 @@ func (c fastClientIndexes) List() (resp Indexes, err error) {
 	if err := c.client.executeRequest(req); err != nil {
 		return nil, err
 	}
-	log.Printf("list %v", resp)
 	return resp, nil
 }
 
@@ -67,7 +64,6 @@ func (c fastClientIndexes) Create(request CreateIndexRequest) (resp *CreateIndex
 		functionName:        "Create",
 		apiName:             "Indexes",
 	}
-	log.Printf("create %v row %v", request, req)
 	if err := c.client.executeRequest(req); err != nil {
 		return nil, err
 	}
