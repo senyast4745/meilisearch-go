@@ -96,8 +96,10 @@ func (c *FastHttpClient) executeRequest(req internalRawRequest) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("responce %v", response)
+	log.Printf("response %v", response)
 	internalError.StatusCode = response.StatusCode()
+	log.Printf("response code %v", response.StatusCode())
+	log.Printf("response body %v", string(response.Body()))
 
 	err = c.handleStatusCode(&req, response, internalError)
 	log.Print()
