@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
+	"log"
 	"net/url"
 	"time"
 )
@@ -90,15 +91,16 @@ func (c *FastHttpClient) executeRequest(req internalRawRequest) error {
 		MeilisearchMessage: "empty meilisearch message",
 		StatusCodeExpected: req.acceptedStatusCodes,
 	}
-
+	log.Printf("%v", req)
 	response, err := c.sendRequest(&req, internalError)
 	if err != nil {
 		return err
 	}
-
+	log.Printf("%v", response)
 	internalError.StatusCode = response.StatusCode()
 
 	err = c.handleStatusCode(&req, response, internalError)
+	log.Print()
 	if err != nil {
 		return err
 	}
