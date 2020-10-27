@@ -238,7 +238,6 @@ func (i StrsArr) MarshalJSON() ([]byte, error) {
 }
 
 func (i *Indexes) UnmarshalJSON(data []byte) error {
-	bf := bytes.Buffer{}
 	pr := fastjson.Parser{}
 
 	log.Printf("indexes data %v", string(data))
@@ -254,16 +253,15 @@ func (i *Indexes) UnmarshalJSON(data []byte) error {
 
 	for _, val := range valArray {
 		ind := &Index{}
-		val.MarshalTo(bf.Bytes())
-		log.Printf("indexes data raw bytes %v, bytes %v ", val.String(), bf.String())
-		err = ind.UnmarshalJSON(bf.Bytes())
+		data = val.MarshalTo(data[:0])
+		log.Printf("indexes data raw bytes %v, bytes %v ", val.String(), string(data))
+		err = ind.UnmarshalJSON(data)
 		if err != nil {
 			log.Printf("parse errorororor !! %v", err)
 			return err
 		}
 		log.Printf("indexes data raw ind %v", ind)
 		*i = append(*i, *ind)
-		bf.Reset()
 	}
 
 	return nil
