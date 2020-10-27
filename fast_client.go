@@ -92,7 +92,9 @@ func (c *FastHttpClient) executeRequest(req internalRawRequest) error {
 		StatusCodeExpected: req.acceptedStatusCodes,
 	}
 	log.Printf("request %v", req)
-	response, err := c.sendRequest(&req, internalError)
+	response := fasthttp.AcquireResponse()
+	defer fasthttp.ReleaseResponse(response)
+	err := c.sendRequest(&req, internalError, response)
 	if err != nil {
 		return err
 	}
@@ -115,17 +117,17 @@ func (c *FastHttpClient) executeRequest(req internalRawRequest) error {
 	return nil
 }
 
-func (c *FastHttpClient) sendRequest(req *internalRawRequest, internalError *Error) (*fasthttp.Response, error) {
+func (c *FastHttpClient) sendRequest(req *internalRawRequest, internalError *Error, response *fasthttp.Response) error {
 	var (
-		request  *fasthttp.Request
-		response *fasthttp.Response
-		err      error
+		request *fasthttp.Request
+
+		err error
 	)
 
 	// Setup URL
 	requestURL, err := url.Parse(c.config.Host + req.endpoint)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to parse url")
+		return errors.Wrap(err, "unable to parse url")
 	}
 
 	// Build query parameters
@@ -139,9 +141,7 @@ func (c *FastHttpClient) sendRequest(req *internalRawRequest, internalError *Err
 	}
 
 	request = fasthttp.AcquireRequest()
-	response = fasthttp.AcquireResponse()
 	defer fasthttp.ReleaseRequest(request)
-	defer fasthttp.ReleaseResponse(response)
 
 	request.SetRequestURI(requestURL.String())
 	request.Header.SetMethod(req.method)
@@ -155,7 +155,7 @@ func (c *FastHttpClient) sendRequest(req *internalRawRequest, internalError *Err
 		internalError.RequestToString = string(data)
 
 		if err != nil {
-			return nil, internalError.WithErrCode(ErrCodeMarshalRequest, err)
+			return internalError.WithErrCode(ErrCodeMarshalRequest, err)
 		}
 		request.SetBody(data)
 	}
@@ -171,10 +171,10 @@ func (c *FastHttpClient) sendRequest(req *internalRawRequest, internalError *Err
 
 	// request execution fail
 	if err != nil {
-		return nil, internalError.WithErrCode(ErrCodeRequestExecution, err)
+		return internalError.WithErrCode(ErrCodeRequestExecution, err)
 	}
 
-	return response, nil
+	return nil
 }
 
 func (c *FastHttpClient) handleStatusCode(req *internalRawRequest, response *fasthttp.Response, internalError *Error) error {
