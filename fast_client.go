@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/pkg/errors"
 	"github.com/valyala/fasthttp"
+	"log"
 	"net/url"
 	"time"
 )
@@ -200,6 +201,7 @@ func (c *FastHttpClient) handleResponse(req *internalRawRequest, response *fasth
 		// A json response is mandatory, so the response interface{} need to be unmarshal from the response payload.
 		rawBody := response.Body()
 		internalError.ResponseToString = string(rawBody)
+		log.Printf("raw resp in handle responce %v", string(rawBody))
 		if err = req.withResponse.UnmarshalJSON(rawBody); err != nil {
 			return internalError.WithErrCode(ErrCodeResponseUnmarshalBody, err)
 		}
