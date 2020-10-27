@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/valyala/fastjson"
+	"log"
 	"time"
 )
 
@@ -240,19 +241,23 @@ func (i *Indexes) UnmarshalJSON(data []byte) error {
 	bf := bytes.Buffer{}
 	pr := fastjson.Parser{}
 
-	val, err := pr.ParseBytes(data)
+	log.Printf("indexes data %v", string(data))
+	vals, err := pr.ParseBytes(data)
 	if err != nil {
 		return err
 	}
-	valArray, err := val.Array()
+	valArray, err := vals.Array()
+	log.Printf("indexes data raw %v", vals.String())
 	if err != nil {
 		return err
 	}
-	ind := &Index{}
-	for _, val := range valArray {
-		val.MarshalTo(bf.Bytes())
 
+	for _, val := range valArray {
+		ind := &Index{}
+		val.MarshalTo(bf.Bytes())
+		log.Printf("indexes data raw bytes %v", string(bf.Bytes()))
 		err = ind.UnmarshalJSON(bf.Bytes())
+		log.Printf("indexes data raw ind %v", ind)
 		if err != nil {
 			return err
 		}
