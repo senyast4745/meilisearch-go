@@ -5,16 +5,16 @@ import (
 )
 
 type fastClientIndexes struct {
-	client *FastHTTPClient
+	client *Client
 }
 
-func newFastClientIndexes(client *FastHTTPClient) fastClientIndexes {
+func newFastClientIndexes(client *Client) fastClientIndexes {
 	return fastClientIndexes{client: client}
 }
 
 func (c fastClientIndexes) Get(uid string) (resp *Index, err error) {
 	resp = &Index{}
-	req := internalRawRequest{
+	req := internalRequest{
 		endpoint:            "/indexes/" + uid,
 		method:              http.MethodGet,
 		withRequest:         nil,
@@ -33,7 +33,7 @@ func (c fastClientIndexes) Get(uid string) (resp *Index, err error) {
 func (c fastClientIndexes) List() (resp []Index, err error) {
 	resp = []Index{}
 
-	req := internalRawRequest{
+	req := internalRequest{
 		endpoint:            "/indexes",
 		method:              http.MethodGet,
 		withRequest:         nil,
@@ -51,7 +51,7 @@ func (c fastClientIndexes) List() (resp []Index, err error) {
 
 func (c fastClientIndexes) Create(request CreateIndexRequest) (resp *CreateIndexResponse, err error) {
 	resp = &CreateIndexResponse{}
-	req := internalRawRequest{
+	req := internalRequest{
 		endpoint:            "/indexes",
 		method:              http.MethodPost,
 		withRequest:         request,
@@ -69,7 +69,7 @@ func (c fastClientIndexes) Create(request CreateIndexRequest) (resp *CreateIndex
 
 func (c fastClientIndexes) UpdateName(uid string, name string) (resp *Index, err error) {
 	resp = &Index{}
-	req := internalRawRequest{
+	req := internalRequest{
 		endpoint:            "/indexes/" + uid,
 		method:              http.MethodPut,
 		withRequest:         &Name{Name: name},
@@ -88,7 +88,7 @@ func (c fastClientIndexes) UpdateName(uid string, name string) (resp *Index, err
 
 func (c fastClientIndexes) UpdatePrimaryKey(uid string, primaryKey string) (resp *Index, err error) {
 	resp = &Index{}
-	req := internalRawRequest{
+	req := internalRequest{
 		endpoint:            "/indexes/" + uid,
 		method:              http.MethodPut,
 		withRequest:         &PrimaryKey{PrimaryKey: primaryKey},
@@ -106,7 +106,7 @@ func (c fastClientIndexes) UpdatePrimaryKey(uid string, primaryKey string) (resp
 }
 
 func (c fastClientIndexes) Delete(uid string) (ok bool, err error) {
-	req := internalRawRequest{
+	req := internalRequest{
 		endpoint:            "/indexes/" + uid,
 		method:              http.MethodDelete,
 		withRequest:         nil,
